@@ -43,7 +43,7 @@ function resolveConfigPath(filePath) {
     return path.resolve(filePath)
   }
 
-  // require('tailwindcss') 如果前面没有return，就返回默认的相对路径 ./tailwindcss.config.js[.cjs]
+  // require('tailwindcss') 如果用户没有自定义文件名或者路径，就返回默认的相对路径 ./tailwindcss.config.js[.cjs]
   for (const defaultPath of defaultFilePaths) {
     try {
       //暴力try catch 文件存不存在，个人非常喜欢这样的写法，简单有效，无副作用
@@ -78,7 +78,7 @@ const getConfigFunction = (config) => () => {
 // PostCSS 插件入口
 module.exports = function (config) {
   const plugins = []
-  // 
+  // 如果存在，最终获得是配置文件的绝对路径（path.resolve）
   const resolvedConfigPath = resolveConfigPath(config)
 
   if (!_.isUndefined(resolvedConfigPath)) {
