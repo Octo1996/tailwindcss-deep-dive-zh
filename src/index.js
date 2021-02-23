@@ -9,7 +9,7 @@ import processTailwindFeatures from './processTailwindFeatures'
 import formatCSS from './lib/formatCSS'
 import resolveConfig from './util/resolveConfig'
 import getAllConfigs from './util/getAllConfigs'
-import { supportedConfigFiles } from './constants'
+import { supportedConfigFiles as defaultFilePaths } from './constants'
 import defaultConfig from '../stubs/defaultConfig.stub.js'
 
 // 处理项目配置文件, 如: tailwind.config.js，最终的结果是得到一条路径
@@ -43,10 +43,11 @@ function resolveConfigPath(filePath) {
     return path.resolve(filePath)
   }
 
-  // require('tailwindcss')
-  for (const configFile of supportedConfigFiles) {
+  // require('tailwindcss') 如果前面没有return，就返回默认的相对路径 ./tailwindcss.config.js[.cjs]
+  for (const defaultPath of defaultFilePaths) {
     try {
-      const configPath = path.resolve(configFile)
+      //暴力try catch 文件存不存在，个人非常喜欢这样的写法，简单有效，无副作用
+      const configPath = path.resolve(defaultPath)
       fs.accessSync(configPath)
       return configPath
     } catch (err) {}
