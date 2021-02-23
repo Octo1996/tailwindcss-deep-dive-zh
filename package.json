@@ -5,6 +5,7 @@
   "license": "MIT",
   "main": "lib/index.js",
   "style": "dist/tailwind.css",
+  "type": "module",
   "repository": "https://github.com/tailwindlabs/tailwindcss.git",
   "bugs": "https://github.com/tailwindlabs/tailwindcss/issues",
   "homepage": "https://tailwindcss.com",
