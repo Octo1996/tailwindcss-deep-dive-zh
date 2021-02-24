@@ -7,6 +7,7 @@ const featureFlags = {
   experimental: [],
 }
 
+// 配置 key 是不是在实验阶段 （future 字段，旧， 将来不就会被废弃）
 export function flagEnabled(config, flag) {
   if (featureFlags.future.includes(flag)) {
     return config.future === 'all' || _.get(config, ['future', flag], false)
@@ -19,6 +20,7 @@ export function flagEnabled(config, flag) {
   return false
 }
 
+// 怎么说呢？ 实验字段我开放了，你用了吗？
 function experimentalFlagsEnabled(config) {
   if (config.experimental === 'all') {
     return featureFlags.experimental
@@ -34,6 +36,7 @@ export function issueFlagNotices(config) {
     return
   }
 
+  //当配置里使用实验字段，警告实验字段不稳定，随时会更改，chalk是一个快捷更改控制台输出颜色的库
   if (experimentalFlagsEnabled(config).length > 0) {
     const changes = experimentalFlagsEnabled(config)
       .map((s) => chalk.yellow(s))
