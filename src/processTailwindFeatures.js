@@ -39,6 +39,7 @@ export default function (getConfig) {
         ])
       }
 
+      // 检查是否有使用实验阶段的功能，有，则控制台打印提示一下
       issueFlagNotices(config)
 
       processedPlugins = processPlugins(

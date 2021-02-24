@@ -42,7 +42,8 @@ const configUtils = {
 function value(valueToResolve, ...args) {
   return isFunction(valueToResolve) ? valueToResolve(...args) : valueToResolve
 }
-
+// 收集每一个 extend 下的内容，形成数组，而不是覆盖掉
+// https://tailwindcss.com/docs/theme#extending-the-default-theme
 function collectExtends(items) {
   return items.reduce((merged, { extend }) => {
     return mergeWith(merged, extend, (mergedValue, extendValue) => {
@@ -59,8 +60,17 @@ function collectExtends(items) {
   }, {})
 }
 
+// 除开extend， 自动合并 theme 的配置
 function mergeThemes(themes) {
   return {
+    // defaults 合并 对象的key，采用key在前面的
+    /* 
+
+    _.defaults({ 'a': 1 }, { 'b': 2 }, { 'a': 3 });
+    => { 'a': 1, 'b': 2 }
+    
+    */
+    //--------------------------------- return 给下一次的 merged
     ...themes.reduce((merged, theme) => defaults(merged, theme), {}),
 
     // In order to resolve n config objects, we combine all of their `extend` properties
@@ -89,6 +99,9 @@ function mergeExtensionCustomizer(merged, value) {
   return undefined
 }
 
+// 手写在config.js 里的优先级最高
+// 然后是extend 里改动的，然后是各种第三方的 配置
+// 因为是extend，最终都往 default上合并
 function mergeExtensions({ extend, ...theme }) {
   return mergeWith(theme, extend, (themeValue, extensions) => {
     // The `extend` property is an array, so we need to check if it contains any functions
@@ -127,7 +140,7 @@ function resolveFunctionKeys(object) {
     }
   }, {})
 }
-
+// 递归收集插件（tailwind 的 plugins 自带的配置）并扁平化
 function extractPluginConfigs(configs) {
   let allConfigs = []
 
@@ -207,6 +220,7 @@ function mergeVariants(variants) {
 
   return {
     ...mergedVariants,
+    // 收集extend 下的内容 为数组
     extend: collectExtends(variants),
   }
 }
@@ -255,6 +269,7 @@ function resolvePluginLists(pluginLists) {
 }
 
 export default function resolveConfig(configs) {
+  // allConfigs 自己的config， plugins 的config，preset config， 以及这些config依赖的其它第三方config
   const allConfigs = [
     ...extractPluginConfigs(configs),
     {

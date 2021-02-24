@@ -21,7 +21,15 @@ module.exports = {
     tailwindcss: { config: './custom-config.js' },
   },
 }
+或者
+plugins:[
+  tailwindcss({
+    config: "./custom.config.js"
+  })
+]
 */
+// filePath 实际上是postcss自动传递过来的 配置参数
+// 简单来说，要么直接传递文件，要么从 参数对象的config字段拿 路径字符串，要么从默认 tailwindcss.config.js 拿
 function resolveConfigPath(filePath) {
   // require('tailwindcss')({ theme: ..., variants: ... })
   if (_.isObject(filePath) && !_.has(filePath, 'config') && !_.isEmpty(filePath)) {
@@ -55,26 +63,35 @@ function resolveConfigPath(filePath) {
 
   return undefined
 }
+// 注意这里是两个箭头函数哦，返回的是另一个函数
+const getConfigFunction = (config) => {
+  return () => {
+    if (_.isUndefined(config)) {
+      // 如果是undefined，有三种情况，
+      /* 
+      一，啥都没写，config.js没有
+      二，写了配置参数，参数里没有用config指明配置文件，而是直接给的配置信息
+      三，写了配置参数，但是参数里的config是直接传递的配置信息
 
-const getConfigFunction = (config) => () => {
-  if (_.isUndefined(config)) {
-    return resolveConfig([...getAllConfigs(defaultConfig)])
-  }
-
-  // Skip this if Jest is running: https://github.com/facebook/jest/pull/9841#issuecomment-621417584
-  if (process.env.JEST_WORKER_ID === undefined) {
-    if (!_.isObject(config)) {
-      getModuleDependencies(config).forEach((mdl) => {
-        delete require.cache[require.resolve(mdl.file)]
-      })
+      这样的话就要合并配置信息了
+      */
+      return resolveConfig([...getAllConfigs(defaultConfig)])
     }
+
+    // Skip this if Jest is running: https://github.com/facebook/jest/pull/9841#issuecomment-621417584
+    if (process.env.JEST_WORKER_ID === undefined) {
+      if (!_.isObject(config)) {
+        getModuleDependencies(config).forEach((mdl) => {
+          delete require.cache[require.resolve(mdl.file)]
+        })
+      }
+    }
+
+    const configObject = _.isObject(config) ? _.get(config, 'config', config) : require(config)
+
+    return resolveConfig([...getAllConfigs(configObject)])
   }
-
-  const configObject = _.isObject(config) ? _.get(config, 'config', config) : require(config)
-
-  return resolveConfig([...getAllConfigs(configObject)])
 }
-
 // PostCSS 插件入口
 module.exports = function (config) {
   const plugins = []
